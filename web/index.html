@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Churn & Revenue Risk Intelligence Platform</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">ChurnIQ</span>
+          <span class="brand-subtitle">Revenue Intelligence</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="#executive-overview" class="nav-item active" data-tab="overview">
+          <i class="fa-solid fa-grip"></i> Executive Summary
+        </a>
+        <a href="#risk-analytics" class="nav-item" data-tab="analytics">
+          <i class="fa-solid fa-brain"></i> Predictive Analytics
+        </a>
+        <a href="#what-if-simulator" class="nav-item" data-tab="simulator">
+          <i class="fa-solid fa-sliders"></i> Risk Simulator
+        </a>
+        <a href="#customer-accounts" class="nav-item" data-tab="accounts">
+          <i class="fa-solid fa-users"></i> At-Risk Accounts
+        </a>
+      </nav>
+
+      <div class="model-badge-card">
+        <div class="badge-header">
+          <i class="fa-solid fa-shield-halved"></i> ML Model Active
+        </div>
+        <div class="badge-body">
+          <span id="active-model-name">Logistic Regression</span>
+          <span class="auc-tag" id="active-model-auc">ROC-AUC: 0.80</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1>SaaS Churn & Revenue Risk Intelligence</h1>
+          <p>Real-Time Predictive Analytics, Survival Analysis & Prescriptive Retention Modeling</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-outline" id="btn-export-report">
+            <i class="fa-solid fa-download"></i> Export Analytics Report
+          </button>
+          <div class="live-pill">
+            <span class="dot"></span> Live Telemetry Active
+          </div>
+        </div>
+      </header>
+
+      <!-- KPI Executive Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card purple-glow">
+          <div class="kpi-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-label">Total Portfolio ARR</span>
+            <h2 id="kpi-total-arr">$0</h2>
+            <span class="kpi-sub">5,000 Active Accounts</span>
+          </div>
+        </div>
+
+        <div class="kpi-card danger-glow">
+          <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-label">Revenue At Risk (ARR)</span>
+            <h2 id="kpi-revenue-at-risk">$0</h2>
+            <span class="kpi-sub" id="kpi-high-risk-arr">High Risk: $0</span>
+          </div>
+        </div>
+
+        <div class="kpi-card warning-glow">
+          <div class="kpi-icon"><i class="fa-solid fa-user-xmark"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-label">High-Risk Accounts</span>
+            <h2 id="kpi-high-risk-count">0</h2>
+            <span class="kpi-sub" id="kpi-risk-breakdown">Medium: 0 | Low: 0</span>
+          </div>
+        </div>
+
+        <div class="kpi-card success-glow">
+          <div class="kpi-icon"><i class="fa-solid fa-percent"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-label">Baseline Churn Rate</span>
+            <h2 id="kpi-churn-rate">0%</h2>
+            <span class="kpi-sub">Model F1: <span id="kpi-model-f1">0.0</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: Predictive Analytics Charts -->
+      <section id="executive-overview" class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-chart-pie"></i> Executive Risk & Drivers</h2>
+        </div>
+        <div class="charts-grid-2">
+          <!-- Scatter Risk Chart -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3>Churn Risk vs MRR Distribution</h3>
+              <span class="tooltip-info" title="Top right quadrant represents high MRR accounts with high churn risk."><i class="fa-solid fa-circle-info"></i></span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartScatterRisk"></canvas>
+            </div>
+          </div>
+
+          <!-- Feature Importances (SHAP Drivers) -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3>Key Churn Driver Importances (SHAP Coefficients)</h3>
+              <span class="badge-tag">ML Feature Rankings</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartFeatureImportance"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Survival Analysis & Cohort Heatmap -->
+      <section id="risk-analytics" class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-heart-pulse"></i> Customer Survival & Cohort Retention</h2>
+        </div>
+        <div class="charts-grid-2">
+          <!-- Survival Probability Curve -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3>Kaplan-Meier Survival Curves by Plan Tier</h3>
+              <span class="badge-tag">Tenure Probability</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartSurvivalCurves"></canvas>
+            </div>
+          </div>
+
+          <!-- Model Performance Matrix -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3>Classifier Performance Comparison</h3>
+              <span class="badge-tag">Model Benchmarks</span>
+            </div>
+            <div class="model-comparison-table-wrapper">
+              <table class="data-table" id="table-model-comparison">
+                <thead>
+                  <tr>
+                    <th>Algorithm</th>
+                    <th>ROC-AUC</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Interactive What-If Churn Risk Simulator -->
+      <section id="what-if-simulator" class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-sliders"></i> Real-Time Interactive "What-If" Churn Risk Simulator</h2>
+          <p>Adjust customer attributes to evaluate instantaneous churn probability and automated retention advice.</p>
+        </div>
+
+        <div class="simulator-layout">
+          <!-- Simulator Controls -->
+          <div class="sim-card controls-card">
+            <h3><i class="fa-solid fa-gears"></i> Account Telemetry Inputs</h3>
+
+            <div class="form-group">
+              <label>Plan Tier</label>
+              <select id="sim-plan" class="sim-input">
+                <option value="Basic">Basic ($49/mo)</option>
+                <option value="Pro" selected>Pro ($199/mo)</option>
+                <option value="Enterprise">Enterprise ($999/mo)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Contract Type</label>
+              <select id="sim-contract" class="sim-input">
+                <option value="Monthly" selected>Monthly</option>
+                <option value="Annual">Annual</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Monthly Recurring Revenue (MRR): $<span id="val-sim-mrr">199</span></label>
+              <input type="range" id="sim-mrr" min="20" max="1500" value="199" step="10" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>90-Day Login Decay Rate: <span id="val-sim-decay">-15%</span></label>
+              <input type="range" id="sim-decay" min="-0.8" max="0.4" value="-0.15" step="0.05" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>Feature Adoption Score (0-100): <span id="val-sim-adoption">55</span></label>
+              <input type="range" id="sim-adoption" min="5" max="100" value="55" step="1" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>Support Tickets (Last 90d): <span id="val-sim-tickets">4</span></label>
+              <input type="range" id="sim-tickets" min="0" max="10" value="4" step="1" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>Avg Ticket Resolution (Hours): <span id="val-sim-res-hrs">36 hrs</span></label>
+              <input type="range" id="sim-res-hrs" min="1" max="72" value="36" step="1" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>Payment Failures (Past 12m): <span id="val-sim-pay-fail">1</span></label>
+              <input type="range" id="sim-pay-fail" min="0" max="3" value="1" step="1" class="sim-slider">
+            </div>
+
+            <div class="form-group">
+              <label>NPS Score (0-10): <span id="val-sim-nps">6</span></label>
+              <input type="range" id="sim-nps" min="0" max="10" value="6" step="1" class="sim-slider">
+            </div>
+          </div>
+
+          <!-- Simulator Prediction Output -->
+          <div class="sim-card output-card">
+            <h3><i class="fa-solid fa-microchip"></i> Prediction & Strategic Output</h3>
+
+            <div class="risk-gauge-box">
+              <div class="gauge-circle" id="sim-gauge-circle">
+                <span class="gauge-value" id="sim-prob-display">0%</span>
+                <span class="gauge-sub">Predicted Churn Prob</span>
+              </div>
+              <div class="risk-status-pill" id="sim-risk-pill">Tier: High Risk</div>
+            </div>
+
+            <div class="output-stat-grid">
+              <div class="stat-box">
+                <span class="stat-label">Expected Annual Revenue Loss</span>
+                <span class="stat-val" id="sim-revenue-loss">$0</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">Support Workload Index</span>
+                <span class="stat-val" id="sim-workload-idx">0</span>
+              </div>
+            </div>
+
+            <div class="recommendation-box">
+              <h4><i class="fa-solid fa-lightbulb"></i> Automated Prescriptive Action</h4>
+              <p id="sim-rec-text">Evaluating parameters...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Customer Accounts Table -->
+      <section id="customer-accounts" class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-list-check"></i> At-Risk Account Directory & Action Radar</h2>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="account-search" placeholder="Search by Company Name or ID...">
+            </div>
+
+            <div class="filter-group">
+              <select id="filter-risk-tier" class="table-select">
+                <option value="ALL">All Risk Tiers</option>
+                <option value="High" selected>High Risk Only</option>
+                <option value="Medium">Medium Risk</option>
+                <option value="Low">Low Risk</option>
+              </select>
+
+              <select id="filter-plan" class="table-select">
+                <option value="ALL">All Plans</option>
+                <option value="Enterprise">Enterprise</option>
+                <option value="Pro">Pro</option>
+                <option value="Basic">Basic</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table" id="table-accounts">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Company Name</th>
+                  <th>Plan Tier</th>
+                  <th>Contract</th>
+                  <th>MRR</th>
+                  <th>Churn Risk Prob</th>
+                  <th>Risk Tier</th>
+                  <th>Recommended Retention Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
